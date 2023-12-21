@@ -45,3 +45,11 @@ Check pom.xml for package configuration.
 1. kafka-streams
 2. slf4j-api
 3. slf4j-log4j12
+
+And configure src/main/resources/log4j.properties
+
+log4j.rootLogger=INFO, stdout
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%p %m (%c:%L) %n
