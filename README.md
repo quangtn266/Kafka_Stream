@@ -1,7 +1,9 @@
 # Kafka_Stream
 Demo of some mini projects for study.
 
-## Configuratio for generating new project (Favorite Color) maven:
+The project counts the occurrences of colors [red, green, blue] with format (key, color).
+
+## Configuration for generating new project (Favorite Color) maven:
 ```
 groupId=com.github.quangtn.kafka.streams
 artifactId=kafka_favoritecolor_project
@@ -43,3 +45,8 @@ kafka-console-consumer.sh --bootstrap-server localhost:9092
 ```
 kafka-console-producer.sh --broker-list localhost:9092 --topic favourite-colour-input
 ```
+## Running.
+
+In "produce" data, you can run like:
+Quang,red
+Mikey,green
