@@ -47,6 +47,10 @@ kafka-console-producer.sh --broker-list localhost:9092 --topic favourite-colour-
 ```
 ## Running.
 
-In "produce" data, you can run like:
+In "produce" terminal, you can run like:
+
 Quang,red
+
 Mikey,green
+
+In "consumer" terminal, you will see the result like <key>  <number>
