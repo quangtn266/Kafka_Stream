@@ -1,5 +1,6 @@
 package com.github.quangtn.kafka.streams;
 
+import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -10,14 +11,14 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.connect.json.JsonDeserializer;
 import org.apache.kafka.connect.json.JsonSerializer;
-// import com.fasterxml.jackson.databind.JsonDeserializer;
-// import com.fasterxml.jackson.databind.JsonSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.state.KeyValueStore;
+
+import org.apache.kafka.common.utils.Bytes;
+
 
 import java.time.Instant;
 import java.util.Properties;
@@ -44,9 +45,7 @@ public class BankBalanceExactlyOnceApp {
 
         StreamsBuilder builder = new StreamsBuilder();
 
-//        KStream<String, JsonNode> bankTransactions = builder.stream(Serdes.String(), jsonSerde, "bank-transactions");
-
-        KStream<String, JsonNode> bankTransactions = builder.stream("bank-transactions");
+        KStream<String, JsonNode> bankTransactions = builder.stream("bank-transactions", Consumed.with(Serdes.String(), jsonSerde));
 
         // create the initial json object for balances
         ObjectNode initialBalance = JsonNodeFactory.instance.objectNode();
@@ -55,16 +54,15 @@ public class BankBalanceExactlyOnceApp {
         initialBalance.put("time", Instant.ofEpochMilli(0L).toString());
 
         KTable<String, JsonNode> bankBalance = bankTransactions
-               // .groupByKey(Serdes.String(), jsonSerde)
                 .groupByKey()
                 .aggregate(
                         () -> initialBalance,
-                       // (key, transaction, balance) -> newBalance(transaction, balance),
-                       // jsonSerde,
-                       // "bank-balance-agg"
-
-                        (key, transaction, balance) -> newBalance(transaction, (JsonNode) balance)
+                        (key, transaction, balance) -> newBalance(transaction, (JsonNode) balance),
+                        Materialized.<String, JsonNode, KeyValueStore<Bytes, byte[]>>as("bank-balance-agg")
+                                .withKeySerde(Serdes.String())
+                                .withValueSerde(jsonSerde)
                 );
+
 
         bankBalance.toStream().to("bank-balance-exactly-once", Produced.with(Serdes.String(), jsonSerde));
 
@@ -73,7 +71,8 @@ public class BankBalanceExactlyOnceApp {
         streams.start();
 
         // print the topology
-        System.out.println(streams.toString());
+        // System.out.println(streams.toString());
+        streams.localThreadsMetadata().forEach(data -> System.out.println(data));
 
         // shutdown hook to correctly close the streams application
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));

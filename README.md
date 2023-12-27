@@ -32,4 +32,4 @@ kafka-console-consumer.sh --bootstrap-server localhost:9092 \
     --property value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
 ```
 
-5. Run BankTransactionProducer.java
+5. Run BankTransactionProducer.java && BankBalanceExactlyOnceApp.java
